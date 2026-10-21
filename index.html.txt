@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Tiệm Sửa Xe</title>
+    
+    <!-- Cấu hình PWA cho iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sửa Xe Pro">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f2f2f7;
+            color: #1c1c1e;
+            padding-bottom: 90px;
+        }
+        .ios-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .bottom-nav {
+            backdrop-filter: blur(20px);
+            background-color: rgba(255, 255, 255, 0.85);
+        }
+    </style>
+</head>
+<body class="p-4 max-w-md mx-auto">
+
+    <!-- HEADER -->
+    <header class="text-center my-4">
+        <h1 class="text-2xl font-bold tracking-tight text-blue-600"><i class="fa-solid fa-motorcycle mr-2"></i>Tiệm Sửa Xe Pro</h1>
+        <p class="text-xs text-gray-500">Hệ thống quản lý phiếu tính tiền</p>
+    </header>
+
+    <!-- CONTAINER CHÍNH -->
+    <main id="mainContainer">
+        
+        <!-- ================= TAB 1: TẠO PHIẾU (MẶC ĐỊNH) ================= -->
+        <section id="tabCreate" class="space-y-4">
+            
+            <!-- BƯỚC 1: NHẬP THÔNG TIN XE -->
+            <div id="step1" class="ios-card p-5 space-y-4">
+                <h2 class="text-base font-semibold text-gray-800 border-b pb-2">
+                    <i class="fa-regular fa-user text-blue-500 mr-2"></i>Bước 1: Thông tin khách hàng
+                </h2>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Tên chủ xe / Khách hàng</label>
+                    <input type="text" id="customerName" placeholder="Ví dụ: Nguyễn Văn A" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Thông tin xe / Biển số</label>
+                    <input type="text" id="vehicleInfo" placeholder="Ví dụ: AirBlade - 59-V1 12345" class="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-gray-50">
+                </div>
+                <button onclick="goToStep2()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/30 transition-all text-sm">
+                    Tiếp tục thêm phụ tùng <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+
+            <!-- BƯỚC 2: BẢNG TÍNH TIỀN (ẨN BAN ĐẦU) -->
+            <div id="step2" class="ios-card p-5 space-y-4 hidden">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <div>
+                        <h2 class="text-base font-semibold text-gray-800"><i class="fa-solid fa-receipt text-blue-500 mr-2"></i>Bảng tính tiền</h2>
+                        <p id="displayCustomerInfo" class="text-xs text-gray-500 mt-0.5"></p>
+                    </div>
+                    <button onclick="backToStep1()" class="text-xs text-blue-600 font-medium underline">Sửa thông tin</button>
+                </div>
+
+                <!-- Tiêu đề bảng -->
+                <div class="grid grid-cols-12 gap-1.5 text-xs font-semibold text-gray-500 px-1">
+                    <div class="col-span-4">Phụ tùng / Dịch vụ</div>
+                    <div class="col-span-2 text-center">SL</div>
+                    <div class="col-span-3 text-right">Đơn giá</div>
+                    <div class="col-span-3 text-right">Thành tiền</div>
+                </div>
+
+                <!-- Danh sách các dòng phụ tùng -->
+                <div id="itemsList" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                    <!-- Dòng mẫu sẽ được JS thêm vào -->
+                </div>
+
+                <!-- Nút thêm dòng -->
+                <button onclick="addItemRow()" class="w-full py-2 border-2 border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 rounded-xl text-xs font-semibold transition-all">
+                    <i class="fa-solid fa-plus mr-1"></i>Thêm phụ tùng / công dịch vụ
+                </button>
+
+                <!-- Tổng tiền -->
+                <div class="bg-gray-50 p-3.5 rounded-xl flex justify-between items-center border border-gray-100">
+                    <span class="text-sm font-bold text-gray-700">TỔNG THÀNH TIỀN:</span>
+                    <span id="grandTotal" class="text-lg font-bold text-red-600">0 đ</span>
+                </div>
+
+                <!-- Nút lưu giao dịch -->
+                <button onclick="saveTransaction()" id="saveBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl shadow-lg shadow-emerald-500/30 transition-all text-sm">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i>Lưu Giao Dịch & Đẩy Lên Sheet
+                </button>
+            </div>
+
+        </section>
+
+        <!-- ================= TAB 2: KHUNG CHỜ / MỞ RỘNG ================= -->
+        <section id="tabMiddle" class="space-y-4 hidden">
+            <div class="ios-card p-6 text-center space-y-3">
+                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </div>
+                <h2 class="text-lg font-bold text-gray-800">Khu vực mở rộng</h2>
+                <p class="text-xs text-gray-500">Tính năng quản lý kho hoặc thống kê nhanh sẽ được đặt ở đây theo ý bạn.</p>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: LỊCH SỬ GIAO DỊCH ================= -->
+        <section id="tabHistory" class="space-y-4 hidden">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-base font-bold text-gray-800"><i class="fa-solid fa-clock-rotate-left mr-2 text-blue-500"></i>Lịch sử phiếu sửa chữa</h2>
+                <button onclick="loadHistory()" class="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-lg font-medium transition-all">
+                    <i class="fa-solid fa-rotate mr-1"></i>Làm mới
+                </button>
+            </div>
+            
+            <div id="historyLoading" class="text-center py-8 text-gray-400 text-sm">
+                <i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang tải dữ liệu từ Google Sheets...
+            </div>
+
+            <div id="historyList" class="space-y-3">
+                <!-- Danh sách lịch sử đổ vào đây -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- THANH ĐIỀU HƯỚNG DƯỚI ĐÁY (BOTTOM NAVIGATION BAR) -->
+    <nav class="bottom-nav fixed bottom-0 left-0 right-0 border-t border-gray-200 py-2 px-6 flex justify-around items-center z-50 max-w-md mx-auto">
+        <!-- Nút 1: Tạo phiếu (Mặc định) -->
+        <button onclick="switchTab('create')" id="navCreate" class="flex flex-col items-center text-blue-600 transition-all">
+            <i class="fa-solid fa-file-invoice text-xl mb-0.5"></i>
+            <span class="text-[10px] font-semibold">Tạo phiếu</span>
+        </button>
+
+        <!-- Nút 2: Ở giữa -->
+        <button onclick="switchTab('middle')" id="navMiddle" class="flex flex-col items-center text-gray-400 transition-all">
+            <i class="fa-solid fa-boxes-stacked text-xl mb-0.5"></i>
+            <span class="text-[10px] font-semibold">Kho / Tiện ích</span>
+        </button>
+
+        <!-- Nút 3: Lịch sử -->
+        <button onclick="switchTab('history')" id="navHistory" class="flex flex-col items-center text-gray-400 transition-all">
+            <i class="fa-solid fa-clock-rotate-left text-xl mb-0.5"></i>
+            <span class="text-[10px] font-semibold">Lịch sử</span>
+        </button>
+    </nav>
+
+    <!-- JAVASCRIPT XỬ LÝ LOGIC & API GOOGLE SHEETS -->
+    <script>
+        // Đường dẫn API Google Apps Script của bạn
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiqYziypX77tHmYPHF2o_ODWNTzge7PTGe0Lm3fO2722sWTxaf9vgaTlj-3-7TJRoTwQ/exec";
+
+        let editingId = null; // Biến đánh dấu đang sửa phiếu nào
+
+        // Chuyển tab điều hướng
+        function switchTab(tab) {
+            document.getElementById('tabCreate').classList.add('hidden');
+            document.getElementById('tabMiddle').classList.add('hidden');
+            document.getElementById('tabHistory').classList.add('hidden');
+
+            document.getElementById('navCreate').className = "flex flex-col items-center text-gray-400 transition-all";
+            document.getElementById('navMiddle').className = "flex flex-col items-center text-gray-400 transition-all";
+            document.getElementById('navHistory').className = "flex flex-col items-center text-gray-400 transition-all";
+
+            if (tab === 'create') {
+                document.getElementById('tabCreate').classList.remove('hidden');
+                document.getElementById('navCreate').className = "flex flex-col items-center text-blue-600 transition-all";
+            } else if (tab === 'middle') {
+                document.getElementById('tabMiddle').classList.remove('hidden');
+                document.getElementById('navMiddle').className = "flex flex-col items-center text-blue-600 transition-all";
+            } else if (tab === 'history') {
+                document.getElementById('tabHistory').classList.remove('hidden');
+                document.getElementById('navHistory').className = "flex flex-col items-center text-blue-600 transition-all";
+                loadHistory();
+            }
+        }
+
+        // Chuyển từ Bước 1 sang Bước 2
+        function goToStep2() {
+            let name = document.getElementById('customerName').value.trim();
+            let vehicle = document.getElementById('vehicleInfo').value.trim();
+
+            if (!name || !vehicle) {
+                alert("⚠️ Vui lòng nhập đầy đủ tên chủ xe và thông tin xe!");
+                return;
+            }
+
+            document.getElementById('displayCustomerInfo').innerText = `${name} - ${vehicle}`;
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+
+            if (document.getElementById('itemsList').children.length === 0) {
+                addItemRow(); // Thêm sẵn 1 dòng khi mở bảng
+            }
+        }
+
+        function backToStep1() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+        }
+
+        // Thêm một dòng phụ tùng mới
+        function addItemRow(name = "", qty = 1, price = 0) {
+            let container = document.getElementById('itemsList');
+            let rowId = 'row_' + Date.now() + Math.random().toString(36.substr(2, 5));
+            
+            let div = document.createElement('div');
+            div.className = "grid grid-cols-12 gap-1.5 items-center bg-gray-50 p-2 rounded-xl border border-gray-100 item-row";
+            div.id = rowId;
+            div.innerHTML = `
+                <div class="col-span-4">
+                    <input type="text" placeholder="Tên phụ tùng" value="${name}" class="item-name w-full px-2 py-1.5 rounded-lg border border-gray-200 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                </div>
+                <div class="col-span-2">
+                    <input type="number" min="1" value="${qty}" oninput="calculateTotal()" class="item-qty w-full px-1 py-1.5 rounded-lg border border-gray-200 text-xs bg-white text-center focus:outline-none focus:ring-1 focus:ring-blue-500">
+                </div>
+                <div class="col-span-3">
+                    <input type="number" min="0" value="${price}" oninput="calculateTotal()" placeholder="Đơn giá" class="item-price w-full px-2 py-1.5 rounded-lg border border-gray-200 text-xs bg-white text-right focus:outline-none focus:ring-1 focus:ring-blue-500">
+                </div>
+                <div class="col-span-3 flex items-center justify-between pl-1">
+                    <span class="item-total text-xs font-bold text-gray-700 text-right w-full">0đ</span>
+                    <button onclick="document.getElementById('${rowId}').remove(); calculateTotal();" class="text-red-400 hover:text-red-600 ml-1.5 px-1">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+            calculateTotal();
+        }
+
+        // Tự động tính tiền từng dòng và tổng tiền toàn bộ
+        function calculateTotal() {
+            let rows = document.querySelectorAll('.item-row');
+            let grandTotal = 0;
+
+            rows.forEach(row => {
+                let qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                let price = parseFloat(row.querySelector('.item-price').value) || 0;
+                let total = qty * price;
+                
+                row.querySelector('.item-total').innerText = total.toLocaleString('vi-VN') + 'đ';
+                grandTotal += total;
+            });
+
+            document.getElementById('grandTotal').innerText = grandTotal.toLocaleString('vi-VN') + ' đ';
+        }
+
+        // Thu thập dữ liệu các dòng phụ tùng
+        function getItemsData() {
+            let rows = document.querySelectorAll('.item-row');
+            let items = [];
+            rows.forEach(row => {
+                items.push({
+                    name: row.querySelector('.item-name').value.trim() || "Linh kiện",
+                    qty: parseFloat(row.querySelector('.item-qty').value) || 1,
+                    price: parseFloat(row.querySelector('.item-price').value) || 0
+                });
+            });
+            return items;
+        }
+
+        // Lưu giao dịch (Tạo mới hoặc Cập nhật) lên Google Sheets
+        function saveTransaction() {
+            let customerName = document.getElementById('customerName').value.trim();
+            let vehicleInfo = document.getElementById('vehicleInfo').value.trim();
+            let items = getItemsData();
+
+            if (items.length === 0) {
+                alert("⚠️ Vui lòng thêm ít nhất một phụ tùng hoặc dịch vụ!");
+                return;
+            }
+
+            let grandTotalText = document.getElementById('grandTotal').innerText;
+
+            let payload = {
+                action: editingId ? "update" : "create",
+                id: editingId,
+                customerName: customerName,
+                vehicleInfo: vehicleInfo,
+                items: items,
+                totalAmount: grandTotalText
+            };
+
+            let saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i>Đang lưu lên Google Sheet...`;
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk mr-1"></i>Lưu Giao Dịch & Đẩy Lên Sheet`;
+                
+                if (data.status === "success") {
+                    alert(editingId ? "✅ Cập nhật phiếu thành công!" : "🎉 Lưu giao dịch lên Google Sheets thành công!");
+                    resetForm();
+                } else {
+                    alert("❌ Lỗi: " + data.message);
+                }
+            })
+            .catch(err => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk mr-1"></i>Lưu Giao Dịch & Đẩy Lên Sheet`;
+                alert("❌ Lỗi kết nối mạng hoặc Apps Script!");
+                console.error(err);
+            });
+        }
+
+        // Reset form về trạng thái tạo mới ban đầu
+        function resetForm() {
+            editingId = null;
+            document.getElementById('customerName').value = "";
+            document.getElementById('vehicleInfo').value = "";
+            document.getElementById('itemsList').innerHTML = "";
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+            document.getElementById('grandTotal').innerText = "0 đ";
+        }
+
+        // Tải danh sách lịch sử từ Google Sheets
+        function loadHistory() {
+            let loading = document.getElementById('historyLoading');
+            let listContainer = document.getElementById('historyList');
+            
+            loading.style.display = "block";
+            listContainer.innerHTML = "";
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "getHistory" })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loading.style.display = "none";
+                if (data.status === "success") {
+                    let records = data.data;
+                    if (records.length === 0) {
+                        listContainer.innerHTML = `<div class="text-center py-8 text-gray-400 text-xs">Chưa có giao dịch nào được lưu.</div>`;
+                        return;
+                    }
+
+                    records.forEach(rec => {
+                        let card = document.createElement('div');
+                        card.className = "ios-card p-4 space-y-2 border border-gray-100";
+                        
+                        let itemsHtml = rec.items.map(i => `<li class="text-xs text-gray-600">• ${i.name} (SL: ${i.qty}) - ${i.price.toLocaleString('vi-VN')}đ</li>`).join('');
+
+                        card.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-bold text-sm text-gray-800">${rec.customerName}</h3>
+                                    <p class="text-xs text-blue-600 font-medium">${rec.vehicleInfo}</p>
+                                </div>
+                                <span class="text-xs text-gray-400">${rec.date}</span>
+                            </div>
+                            <ul class="pl-2 space-y-0.5 border-t border-b border-gray-100 py-1.5 my-1">
+                                ${itemsHtml}
+                            </ul>
+                            <div class="flex justify-between items-center pt-1">
+                                <span class="text-xs font-bold text-red-600">Tổng: ${rec.totalAmount}</span>
+                                <div class="space-x-2">
+                                    <button onclick='editTransaction(${JSON.stringify(JSON.stringify(rec))})' class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1 rounded-lg text-xs font-semibold transition-all">
+                                        <i class="fa-solid fa-pen-to-square mr-1"></i>Sửa
+                                    </button>
+                                    <button onclick="deleteTransaction('${rec.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1 rounded-lg text-xs font-semibold transition-all">
+                                        <i class="fa-solid fa-trash mr-1"></i>Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        listContainer.appendChild(card);
+                    });
+                } else {
+                    listContainer.innerHTML = `<div class="text-center py-8 text-red-500 text-xs">Không thể tải dữ liệu lịch sử.</div>`;
+                }
+            })
+            .catch(err => {
+                loading.style.display = "none";
+                listContainer.innerHTML = `<div class="text-center py-8 text-red-500 text-xs">Lỗi kết nối khi tải lịch sử.</div>`;
+                console.error(err);
+            });
+        }
+
+        // Chỉnh sửa phiếu từ lịch sử
+        function editTransaction(recStr) {
+            let rec = JSON.parse(recStr);
+            editingId = rec.id;
+
+            document.getElementById('customerName').value = rec.customerName;
+            document.getElementById('vehicleInfo').value = rec.vehicleInfo;
+            
+            let container = document.getElementById('itemsList');
+            container.innerHTML = "";
+            rec.items.forEach(i => {
+                addItemRow(i.name, i.qty, i.price);
+            });
+
+            switchTab('create');
+            goToStep2();
+            document.getElementById('saveBtn').innerHTML = `<i class="fa-solid fa-floppy-disk mr-1"></i>Cập Nhật Lại Phiếu`;
+        }
+
+        // Xóa phiếu khỏi Google Sheets
+        function deleteTransaction(id) {
+            if (!confirm("Bạn có chắc chắn muốn xóa phiếu này không?")) return;
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "delete", id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("🗑️ Đã xóa phiếu thành công!");
+                    loadHistory();
+                } else {
+                    alert("❌ Lỗi khi xóa: " + data.message);
+                }
+            })
+            .catch(err => {
+                alert("❌ Lỗi kết nối!");
+                console.error(err);
+            });
+        }
+    </script>
+</body>
+</html>
